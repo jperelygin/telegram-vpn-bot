@@ -8,7 +8,7 @@ from db_controller import Controller
 from credentials import Credentials
 
 from telegram import Update
-from telegram.ext import Application, CommandHandler, ContextTypes
+from telegram.ext import Application, CommandHandler, ContextTypes, CallbackContext, MessageHandler, filters
 
 
 credentials = Credentials()
@@ -26,6 +26,10 @@ logger = logging.getLogger(__name__)
 engine = create_engine(f"sqlite:///{credentials.get('DATABASE')}")
 db_models.create_tables(engine)
 controller = Controller(engine=engine)
+
+
+async def unknown_message(update: Update, context: CallbackContext):
+    await update.message.reply_text(credentials.get("WRONG_COMMAND"))
 
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -93,11 +97,17 @@ async def list_ovpn_keys(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("\n".join(f"{i}" for i in list_of_keys))
 
 
+async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE):
+    logger.error(context.error)
+    if isinstance(update, Update) and update.message:
+        logger.error(f"Error accured while working with user: {update.effective_user.id} {update.effective_user.username}")
+        await update.message.reply_text(credentials.get("ERROR"))
+
 def generate_ovpn_key_locally(name):
     os.system(f'./{credentials.get("OPENVPN_SERVER_PATH")}/easy-rsa/easyrsa --batch --days=3650 build-client-full "{name}" nopass')
     output_file = f'{credentials.get("OPENVPN_KEYS_FOLDER")}/{name}.ovpn'
 
-    base_config_path = f"{credentials.get('OPENVPN_SERVER_PATH')}/base.conf"
+    base_config_path = f"{credentials.get('OPENVPN_SERVER_PATH')}/server.conf"
     ca_cert_path = f"{credentials.get('OPENVPN_SERVER_PATH')}/easy-rsa/pki/ca.crt"
     client_cert_path = f"{credentials.get('OPENVPN_SERVER_PATH')}/easy-rsa/pki/issued/{name}.crt"
     client_key_path = f"{credentials.get('OPENVPN_SERVER_PATH')}/easy-rsa/pki/private/{name}.key"
@@ -136,9 +146,11 @@ def main():
 
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("help", help))
-    application.add_handler(CommandHandler("register", register))
-    application.add_handler(CommandHandler("new_key", generate_ovpn_key))
+    application.add_handler(CommandHandler("register", register, has_args=1))
+    application.add_handler(CommandHandler("new_key", generate_ovpn_key, has_args=1))
     application.add_handler(CommandHandler("key_list", list_ovpn_keys))
+
+    application.add_handler(MessageHandler(filters.COMMAND, unknown_message))
 
     application.run_polling(allowed_updates=Update.ALL_TYPES)
 
