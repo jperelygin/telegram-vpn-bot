@@ -21,6 +21,10 @@ class Controller:
             logger.info(f"No such user with id: {user_id}.")
 
     def add_new_user_id(self, user_id):
+        user_exists = self.session.query(Users.user_id).filter_by(user_id=user_id).first()
+        if user_exists:
+            logger.info(f"User {user_id} is already in db.")
+            return
         new_user = Users(user_id=user_id)
         self.session.add(new_user)
         self.session.commit()

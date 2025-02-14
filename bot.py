@@ -104,7 +104,8 @@ async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(credentials.get("ERROR"))
 
 def generate_ovpn_key_locally(name):
-    os.system(f'./{credentials.get("OPENVPN_SERVER_PATH")}/easy-rsa/easyrsa --batch --days=3650 build-client-full "{name}" nopass')
+    os.system(f'cd /{credentials.get("OPENVPN_SERVER_PATH")}/easy-rsa '
+              f'&& ./easyrsa --batch --days=3650 build-client-full "{name}" nopass')
     output_file = f'{credentials.get("OPENVPN_KEYS_FOLDER")}/{name}.ovpn'
 
     base_config_path = f"{credentials.get('OPENVPN_SERVER_PATH')}/server.conf"
