@@ -1,12 +1,12 @@
 import logging
 from sqlalchemy import Column, Integer, String, SmallInteger
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import DeclarativeBase
 
 
 logger = logging.getLogger(__name__)
 
 
-class Base(declarative_base):
+class Base(DeclarativeBase):
     pass
 
 
