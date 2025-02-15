@@ -56,8 +56,7 @@ class Controller:
             logger.warning(f"Weird, user {user_id} is authorized but trying to register MD5 hash.")
 
     def check_md5_hash(self, checking_hash):
-        hashes = self.session.query(Md5Hashes.hash).all()
-        logger.info(f"Hashes: {hashes}.")
+        hashes = [h[0] for h in self.session.query(Md5Hashes.hash).all()]
         return True if checking_hash in hashes else False
 
     def block_user_id(self, user_id):
