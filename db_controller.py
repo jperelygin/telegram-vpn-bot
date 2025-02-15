@@ -36,8 +36,7 @@ class Controller:
             logger.info(f"User with id {user_id} is not registered yet.")
             self.add_new_user_id(user_id)
         status = self.session.query(Users.status).filter_by(user_id=user_id).first()
-        logger.info(f"User {user_id} status is {status}.")
-        return status
+        return status[0]
 
     def connect_md5_hash_with_user_id(self, user_id, md5_hash):
         status = self.get_user_status_by_user_id(user_id)
