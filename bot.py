@@ -84,7 +84,7 @@ async def generate_ovpn_key(update: Update, context: ContextTypes.DEFAULT_TYPE):
             raise FileNotFoundError(f"The file {path_to_file} does not exist!")
 
         with open(path_to_file, "rb") as f:
-            context.bot.send_document(chat_id=chat_id, document=f)
+            await context.bot.send_document(chat_id=chat_id, document=f)
         await update.message.reply_text(credentials.get("KEY_GENERATED"))
     except (IndexError, ValueError):
         await update.message.reply_text(credentials.get("BAD_COMMAND_USAGE"))
