@@ -13,7 +13,7 @@ class Controller:
         self.MAX_FAIL_ATTEMPS = 5
 
     def change_user_status(self, user_id, status):
-        user = self.session.query(Users.user_id).filter_by(user_id=user_id).first()
+        user = self.session.query(Users).filter_by(user_id=user_id).first()
         if user:
             user.status = status
             self.session.commit()
