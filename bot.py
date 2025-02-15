@@ -129,7 +129,7 @@ def generate_ovpn_key_locally(name):
               f'&& ./easyrsa --batch --days=3650 build-client-full "{name}" nopass')
     output_file = f'{credentials.get("OPENVPN_KEYS_FOLDER")}/{name}.ovpn'
 
-    base_config_path = f"{credentials.get('OPENVPN_SERVER_PATH')}/server.conf"
+    base_config_path = f"{credentials.get('OPENVPN_SERVER_PATH')}/client.conf"
     ca_cert_path = f"{credentials.get('OPENVPN_SERVER_PATH')}/easy-rsa/pki/ca.crt"
     client_cert_path = f"{credentials.get('OPENVPN_SERVER_PATH')}/easy-rsa/pki/issued/{name}.crt"
     client_key_path = f"{credentials.get('OPENVPN_SERVER_PATH')}/easy-rsa/pki/private/{name}.key"
@@ -139,22 +139,29 @@ def generate_ovpn_key_locally(name):
         with open(base_config_path, "r") as base_config:
             ovpn_file.write(base_config.read())
 
-        ovpn_file.write("\n<ca>\n")
+        ovpn_file.write("<ca>\n")
         with open(ca_cert_path, "r") as ca_cert:
             ovpn_file.write(ca_cert.read())
         ovpn_file.write("</ca>\n")
 
-        ovpn_file.write("\n<cert>\n")
+        ovpn_file.write("<cert>\n")
         with open(client_cert_path, "r") as client_cert:
-            ovpn_file.write(client_cert.read())
+            text = client_cert.readlines()
+            start_index = 0
+            for index, line in text:
+                if "BEGIN CERTIFICATE" in line:
+                    start_index = index
+                    break
+            certificate = text[start_index:]
+            ovpn_file.writelines(certificate)
         ovpn_file.write("</cert>\n")
 
-        ovpn_file.write("\n<key>\n")
+        ovpn_file.write("<key>\n")
         with open(client_key_path, "r") as client_key:
             ovpn_file.write(client_key.read())
         ovpn_file.write("</key>\n")
 
-        ovpn_file.write("\n<tls-crypt>\n")
+        ovpn_file.write("<tls-crypt>\n")
         with open(tls_auth_key_path, "r") as tls_crypt_key:
             ovpn_file.write(tls_crypt_key.read())
         ovpn_file.write("</tls-crypt>\n")
