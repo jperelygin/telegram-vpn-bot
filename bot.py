@@ -148,7 +148,7 @@ def generate_ovpn_key_locally(name):
         with open(client_cert_path, "r") as client_cert:
             text = client_cert.readlines()
             start_index = 0
-            for index, line in text:
+            for index, line in enumerate(text):
                 if "-----BEGIN CERTIFICATE-----" in line:
                     start_index = index
                     break
