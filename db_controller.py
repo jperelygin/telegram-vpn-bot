@@ -83,3 +83,7 @@ class Controller:
 
     def get_all_ovpn_keys_by_user_id(self, user_id):
         return [key[0] for key in self.session.query(OVPNKeys.name).filter_by(user_id=user_id).all()]
+
+    def get_ovpn_key_path_by_name(self, name, user_id):
+        entry = self.session.query(OVPNKeys).filter_by(user_id=user_id, name=name).first()
+        return entry.key

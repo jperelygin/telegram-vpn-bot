@@ -77,8 +77,6 @@ async def generate_ovpn_key(update: Update, context: ContextTypes.DEFAULT_TYPE):
             return
         path_to_file = generate_ovpn_key_locally(name)
         chat_id = update.message.chat_id
-        # TODO: Remove
-        logger.info(f"Chat id: {chat_id}")
 
         controller.add_new_ovpn_key_to_user_id(ovpn_key=path_to_file, name=name, user_id=user_id)
 
@@ -103,6 +101,20 @@ async def list_ovpn_keys(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
     list_of_keys = controller.get_all_ovpn_keys_by_user_id(user_id)
     await update.message.reply_text("\n".join(f"{i}" for i in list_of_keys))
+
+
+async def send_ovpn_key(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.effective_user.id
+    chat_id = update.message.chat_id
+    name = context.args[0]
+    if name in controller.get_all_ovpn_keys_by_user_id(user_id):
+        path_to_file = controller.get_ovpn_key_path_by_name(name, user_id)
+        if not os.path.exists(path_to_file):
+            raise FileNotFoundError(f"The file {path_to_file} does not exist!")
+        with open(path_to_file, "rb") as f:
+            await context.bot.send_document(chat_id=chat_id, document=f)
+    else:
+        await update.message.reply_text(credentials.get("NO_SUCH_OVPN_KEY"))
 
 
 async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE):
@@ -159,6 +171,7 @@ def main():
     application.add_handler(CommandHandler("register", register, has_args=1))
     application.add_handler(CommandHandler("new_key", generate_ovpn_key, has_args=1))
     application.add_handler(CommandHandler("key_list", list_ovpn_keys))
+    application.add_handler(CommandHandler("get_key", send_ovpn_key, has_args=1))
 
     application.add_handler(MessageHandler(filters.COMMAND, unknown_message))
 
