@@ -56,7 +56,7 @@ async def register(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(credentials.get("BAD_COMMAND_USAGE"))
 
 
-async def help(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def help_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(credentials.get("HELP"))
 
 
@@ -76,11 +76,14 @@ async def generate_ovpn_key(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await update.message.reply_text(credentials.get("KEY_NAME_NOT_UNIQUE"))
             return
         path_to_file = generate_ovpn_key_locally(name)
-        chat_id = update.effective_chat.id
+        chat_id = update.message.chat_id
         # TODO: Remove
         logger.info(f"Chat id: {chat_id}")
 
         controller.add_new_ovpn_key_to_user_id(ovpn_key=path_to_file, name=name, user_id=user_id)
+
+        if not os.path.exists(path_to_file):
+            raise FileNotFoundError(f"The file {path_to_file} does not exist!")
 
         with open(path_to_file, "rb") as f:
             context.bot.send_document(chat_id=chat_id, document=f)
@@ -107,6 +110,7 @@ async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE):
     if isinstance(update, Update) and update.message:
         logger.error(f"Error accured while working with user: {update.effective_user.id} {update.effective_user.username}")
         await update.message.reply_text(credentials.get("ERROR"))
+
 
 def generate_ovpn_key_locally(name):
     os.system(f'cd /{credentials.get("OPENVPN_SERVER_PATH")}/easy-rsa '
@@ -151,7 +155,7 @@ def main():
     application = Application.builder().token(credentials.get("APIKEY")).build()
 
     application.add_handler(CommandHandler("start", start))
-    application.add_handler(CommandHandler("help", help))
+    application.add_handler(CommandHandler("help", help_message))
     application.add_handler(CommandHandler("register", register, has_args=1))
     application.add_handler(CommandHandler("new_key", generate_ovpn_key, has_args=1))
     application.add_handler(CommandHandler("key_list", list_ovpn_keys))
