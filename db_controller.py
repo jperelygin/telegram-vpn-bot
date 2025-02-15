@@ -31,8 +31,8 @@ class Controller:
         logger.info(f"New user with user_id: {user_id} was added to db.")
 
     def get_user_status_by_user_id(self, user_id):
-        users = self.session.query(Users.user_id).all()
-        if user_id not in users:
+        user = self.session.query(Users.user_id).filter_by(user_id=user_id).first()
+        if not user:
             logger.info(f"User with id {user_id} is not registered yet.")
             self.add_new_user_id(user_id)
         status = self.session.query(Users.status).filter_by(user_id=user_id).first()
