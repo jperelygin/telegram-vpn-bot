@@ -112,7 +112,7 @@ def generate_ovpn_key_locally(name):
     ca_cert_path = f"{credentials.get('OPENVPN_SERVER_PATH')}/easy-rsa/pki/ca.crt"
     client_cert_path = f"{credentials.get('OPENVPN_SERVER_PATH')}/easy-rsa/pki/issued/{name}.crt"
     client_key_path = f"{credentials.get('OPENVPN_SERVER_PATH')}/easy-rsa/pki/private/{name}.key"
-    tls_auth_key_path = "{credentials.get('OPENVPN_SERVER_PATH')}/tc.key"
+    tls_auth_key_path = f"{credentials.get('OPENVPN_SERVER_PATH')}/tc.key"
 
     with open(output_file, "w") as ovpn_file:
         with open(base_config_path, "r") as base_config:
