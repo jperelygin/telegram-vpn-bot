@@ -152,8 +152,8 @@ def generate_ovpn_key_locally(name):
                 if "-----BEGIN CERTIFICATE-----" in line:
                     start_index = index
                     break
-            certificate = text[start_index:]
-            ovpn_file.writelines(certificate)
+            certificate = "".join(text[start_index:])
+            ovpn_file.write(certificate)
         ovpn_file.write("</cert>\n")
 
         ovpn_file.write("<key>\n")
