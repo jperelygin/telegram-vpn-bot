@@ -47,6 +47,7 @@ async def register(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
     try:
         hash_key = context.args[0]
+        logger.info(f"Hash_key from context: {hash_key}")
         if controller.check_md5_hash(hash_key):
             controller.connect_md5_hash_with_user_id(user_id=user_id, md5_hash=hash_key)
             await update.message.reply_text(credentials.get("REGISTER_SUCCESS"))

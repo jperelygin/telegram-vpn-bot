@@ -57,6 +57,7 @@ class Controller:
 
     def check_md5_hash(self, checking_hash):
         hashes = self.session.query(Md5Hashes.hash).all()
+        logger.info(f"Hashes: {hashes}.")
         return True if checking_hash in hashes else False
 
     def block_user_id(self, user_id):
