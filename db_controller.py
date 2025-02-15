@@ -64,10 +64,10 @@ class Controller:
         logger.warning(f"User {user_id} was blocked.")
 
     def increase_failed_attempts_for_user_id(self, user_id):
-        user = self.session.query(Users.failed_attempts).filter_by(user_id=user_id).first()
+        user = self.session.query(Users).filter_by(user_id=user_id).first()
         if not user:
             self.add_new_user_id(user_id)
-            user = self.session.query(Users.failed_attempts).filter_by(user_id=user_id).first()
+            user = self.session.query(Users).filter_by(user_id=user_id).first()
         fails = user.failed_attempts + 1
         user.failed_attempts = fails
         self.session.commit()
@@ -82,4 +82,4 @@ class Controller:
         logger.info(f"New ovpn key with name {name}, location {ovpn_key} added for user {user_id}.")
 
     def get_all_ovpn_keys_by_user_id(self, user_id):
-        return self.session.query(OVPNKeys.name).filter_by(user_id=user_id).all()
+        return [key[0] for key in self.session.query(OVPNKeys.name).filter_by(user_id=user_id).all()]

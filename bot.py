@@ -77,6 +77,11 @@ async def generate_ovpn_key(update: Update, context: ContextTypes.DEFAULT_TYPE):
             return
         path_to_file = generate_ovpn_key_locally(name)
         chat_id = update.effective_chat.id
+        # TODO: Remove
+        logger.info(f"Chat id: {chat_id}")
+
+        controller.add_new_ovpn_key_to_user_id(ovpn_key=path_to_file, name=name, user_id=user_id)
+
         with open(path_to_file, "rb") as f:
             context.bot.send_document(chat_id=chat_id, document=f)
         await update.message.reply_text(credentials.get("KEY_GENERATED"))
