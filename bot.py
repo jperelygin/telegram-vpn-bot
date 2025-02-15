@@ -112,7 +112,7 @@ def generate_ovpn_key_locally(name):
     ca_cert_path = f"{credentials.get('OPENVPN_SERVER_PATH')}/easy-rsa/pki/ca.crt"
     client_cert_path = f"{credentials.get('OPENVPN_SERVER_PATH')}/easy-rsa/pki/issued/{name}.crt"
     client_key_path = f"{credentials.get('OPENVPN_SERVER_PATH')}/easy-rsa/pki/private/{name}.key"
-    tls_auth_key_path = "{credentials.get('OPENVPN_SERVER_PATH')}/ta.key"
+    tls_auth_key_path = "{credentials.get('OPENVPN_SERVER_PATH')}/tc.key"
 
     with open(output_file, "w") as ovpn_file:
         with open(base_config_path, "r") as base_config:
@@ -133,10 +133,10 @@ def generate_ovpn_key_locally(name):
             ovpn_file.write(client_key.read())
         ovpn_file.write("</key>\n")
 
-        ovpn_file.write("\n<tls-auth>\n")
-        with open(tls_auth_key_path, "r") as tls_auth_key:
-            ovpn_file.write(tls_auth_key.read())
-        ovpn_file.write("</tls-auth>\n")
+        ovpn_file.write("\n<tls-crypt>\n")
+        with open(tls_auth_key_path, "r") as tls_crypt_key:
+            ovpn_file.write(tls_crypt_key.read())
+        ovpn_file.write("</tls-crypt>\n")
 
     logger.info(f"New {output_file} file generated.")
     return output_file
