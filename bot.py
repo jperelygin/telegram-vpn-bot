@@ -3,12 +3,13 @@ import logging
 
 from sqlalchemy import create_engine
 
+from telegram import Update
+from telegram.ext import Application, CommandHandler, ContextTypes, CallbackContext, MessageHandler, filters
+
 import db_models
 from db_controller import Controller
 from credentials import Credentials
-
-from telegram import Update
-from telegram.ext import Application, CommandHandler, ContextTypes, CallbackContext, MessageHandler, filters
+from ovpn_key_generator import generate_ovpn_key_locally
 
 
 credentials = Credentials()
@@ -122,52 +123,6 @@ async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE):
     if isinstance(update, Update) and update.message:
         logger.error(f"Error accured while working with user: {update.effective_user.id} {update.effective_user.username}")
         await update.message.reply_text(credentials.get("ERROR"))
-
-
-def generate_ovpn_key_locally(name):
-    os.system(f'cd /{credentials.get("OPENVPN_SERVER_PATH")}/easy-rsa '
-              f'&& ./easyrsa --batch --days=3650 build-client-full "{name}" nopass')
-    output_file = f'{credentials.get("OPENVPN_KEYS_FOLDER")}/{name}.ovpn'
-
-    base_config_path = f"{credentials.get('OPENVPN_SERVER_PATH')}/client.conf"
-    ca_cert_path = f"{credentials.get('OPENVPN_SERVER_PATH')}/easy-rsa/pki/ca.crt"
-    client_cert_path = f"{credentials.get('OPENVPN_SERVER_PATH')}/easy-rsa/pki/issued/{name}.crt"
-    client_key_path = f"{credentials.get('OPENVPN_SERVER_PATH')}/easy-rsa/pki/private/{name}.key"
-    tls_auth_key_path = f"{credentials.get('OPENVPN_SERVER_PATH')}/tc.key"
-
-    with open(output_file, "w") as ovpn_file:
-        with open(base_config_path, "r") as base_config:
-            ovpn_file.write(base_config.read())
-
-        ovpn_file.write("<ca>\n")
-        with open(ca_cert_path, "r") as ca_cert:
-            ovpn_file.write(ca_cert.read())
-        ovpn_file.write("</ca>\n")
-
-        ovpn_file.write("<cert>\n")
-        with open(client_cert_path, "r") as client_cert:
-            text = client_cert.readlines()
-            start_index = 0
-            for index, line in enumerate(text):
-                if "-----BEGIN CERTIFICATE-----" in line:
-                    start_index = index
-                    break
-            certificate = "".join(text[start_index:])
-            ovpn_file.write(certificate)
-        ovpn_file.write("</cert>\n")
-
-        ovpn_file.write("<key>\n")
-        with open(client_key_path, "r") as client_key:
-            ovpn_file.write(client_key.read())
-        ovpn_file.write("</key>\n")
-
-        ovpn_file.write("<tls-crypt>\n")
-        with open(tls_auth_key_path, "r") as tls_crypt_key:
-            ovpn_file.write(tls_crypt_key.read())
-        ovpn_file.write("</tls-crypt>\n")
-
-    logger.info(f"New {output_file} file generated.")
-    return output_file
 
 
 def main():

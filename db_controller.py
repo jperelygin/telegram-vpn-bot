@@ -10,7 +10,7 @@ class Controller:
     def __init__(self, engine):
         self.engine = engine
         self.session = Session(bind=engine)
-        self.MAX_FAIL_ATTEMPS = 5
+        self.MAX_FAIL_ATTEMPTS = 5
 
     def change_user_status(self, user_id, status):
         user = self.session.query(Users).filter_by(user_id=user_id).first()
@@ -57,7 +57,7 @@ class Controller:
 
     def check_md5_hash(self, checking_hash):
         result = True
-        hashes = [h[0] for h in self.session.query(Md5Hashes.hash).all()]
+        hashes = {h[0] for h in self.session.query(Md5Hashes.hash).all()}
         already_used = self.session.query(Md5Hashes).filter_by(key=checking_hash).first().user_id is not None
         if already_used or checking_hash not in hashes:
             result = False
@@ -76,7 +76,7 @@ class Controller:
         user.failed_attempts = fails
         self.session.commit()
         logger.warning(f"Failed attempts increased for user {user_id}. Current failed attempts: {fails}.")
-        if fails >= self.MAX_FAIL_ATTEMPS:
+        if fails >= self.MAX_FAIL_ATTEMPTS:
             self.block_user_id(user_id)
 
     def add_new_ovpn_key_to_user_id(self, ovpn_key, name, user_id):
@@ -86,7 +86,7 @@ class Controller:
         logger.info(f"New ovpn key with name {name}, location {ovpn_key} added for user {user_id}.")
 
     def get_all_ovpn_keys_by_user_id(self, user_id):
-        return [key[0] for key in self.session.query(OVPNKeys.name).filter_by(user_id=user_id).all()]
+        return {key[0] for key in self.session.query(OVPNKeys.name).filter_by(user_id=user_id).all()}
 
     def get_ovpn_key_path_by_name(self, name, user_id):
         entry = self.session.query(OVPNKeys).filter_by(user_id=user_id, name=name).first()
